@@ -13,29 +13,23 @@ use Zend\EventManager\SharedEventManagerInterface;
 use Zend\Mvc\MvcEvent;
 use Zend\ServiceManager\ServiceLocatorInterface;
 use Zend\Form\Element\Textarea;
+use Zend\Form\Element\Text;
 use Zend\Debug\Debug;
 use Omeka\Mvc\Controller\Plugin\Logger;
+//use Zend\Log\Logger;
+use Zend\Log\Writer;
 use PdfText\Form\Config as ConfigForm;
 use Zend\View\Renderer\PhpRenderer;
 
 class Module extends AbstractModule
 {
-    public function onBootstrap(MvcEvent $event)
-    {
-        parent::onBootstrap($event);
-        $application = $event->getApplication();
-        $services    = $application->getServiceManager();        
-//         Debug::dump($services);        
-    }
-      
     public function install(ServiceLocatorInterface $serviceLocator)
     {
         $logger = $serviceLocator->get('Omeka\Logger');
-//        Debug::dump($logger);
         // Don't install if the pdftotext command doesn't exist.
         // See: http://stackoverflow.com/questions/592620/check-if-a-program-exists-from-a-bash-script
         if ((int) shell_exec('hash pdftotext 2>&- || echo 1')) {
-          $logger->info("pdftotext pas trouvé");
+          $logger->info("pdftotext not found");
         }
 /*
             throw new Omeka_Plugin_Installer_Exception(__('The pdftotext command-line utility ' 
@@ -61,25 +55,31 @@ class Module extends AbstractModule
         $serviceLocator = $this->getServiceLocator();
         $settings = $serviceLocator->get('Omeka\Settings');
 
-        $textarea = new Textarea('pdftotext');
+        $textarea = new Textarea('pdftotext_css');
         $textarea->setAttribute('rows', 15);
         $textarea->setLabel('Options Pdf Text');
-        $textarea->setValue($settings->get('pdttext_toto'));
-        $textarea->setAttribute('id', 'pdttextTOTO_value');
+        $textarea->setValue($settings->get('pdftotext_css'));
+        $textarea->setAttribute('id', 'pdftotext_css');
 
-        return $renderer->render('pdftext/config-form', ['textarea' => $textarea]);
+        $formtext = new Text('pdftotext_path');
+        $formtext->setLabel('Options Pdf Text');
+        $formtext->setValue($settings->get('pdftotext_path'));
+        $formtext->setAttribute('id', 'pdftotext_path');
+        return $renderer->render('pdftext/config-form', ['textarea' => $textarea, 'formtext' => $formtext]);
     }
 
     public function handleConfigForm(AbstractController $controller)
     {
-        $pdftext_toto = $controller->getRequest()->getPost('pdftotext', '');
+        $pdftotext_css = $controller->getRequest()->getPost('pdftotext_css', '');
+        $pdftotext_path = $controller->getRequest()->getPost('pdftotext_path', '');
 
         $site_selected = $controller->getRequest()->getPost('site', '');
         if ($site_selected) {
-            $this->setSiteOption($site_selected, 'pdttext_toto', $pdftext_toto);
+            $this->setSiteOption($site_selected, 'pdftotext_css', $pdftotext_css);
         } else {
-            $this->setOption('pdttext_toto', $pdftext_toto);
+            $this->setOption('pdftotext_css', $pdftotext_css);
         }
+        $this->setOption('pdftotext_path', $pdftotext_path);
 
         return true;
     }
@@ -87,6 +87,11 @@ class Module extends AbstractModule
     public function setOption($name, $value) {
         $serviceLocator = $this->getServiceLocator();
         return $serviceLocator->get('Omeka\Settings')->set($name,$value);
+    }
+
+    public function getOption($name) {
+        $serviceLocator = $this->getServiceLocator();
+        return $serviceLocator->get('Omeka\Settings')->get($name);
     }
     
     protected function setSiteOption($site_id, $name, $value) {
@@ -115,38 +120,31 @@ class Module extends AbstractModule
 
     public function attachListeners(SharedEventManagerInterface $sharedEventManager)
     {
-      
-
      $sharedEventManager->attach(
           'Omeka\Api\Adapter\MediaAdapter',
-          'api.create.post',
+         'api.hydrate.post',          
           function (\Zend\EventManager\Event $event) {
-              $response = $event->getParam('response');
-              $file = $response->getContent();
-              $fileName = $file->getSource();
-              $fileExt = pathinfo($fileName, PATHINFO_EXTENSION);
+            $entity = $event->getParam('entity');
+            if (! $entity->getId()) {
+              $fileExt = $entity->getExtension();
               if (in_array($fileExt, array('pdf', 'PDF'))) {           
                 // Path du fichier
-                $filePath = OMEKA_PATH . '/files/original/' . $file->getStorageId() . '.' . $fileExt;
-//                 $user = $file->getOwner(); // Propriétaire
-                $item = $file->getItem(); // Item de rattachement
+                $filePath = OMEKA_PATH . '/files/original/' . $entity->getStorageId() . '.' . $fileExt;
+                $item = $entity->getItem(); 
                 $itemId = $item->getId();
-                $fileId = $file->getId();
-
                 $text = $this->pdfToText($filePath); 
-                $apiManager = $this->getServiceLocator()->get('Omeka\ApiManager');                
-
-                // Update to item's bibo:content property                
+                $apiManager = $this->getServiceLocator()->get('Omeka\ApiManager');
+                // Update item's bibo:content property                
                 $data = [
-                	"bibo:content" => [[
-                		"type"=> "literal",
-                		"property_id"=> 91,
-                		"@value"=> $text
-                	]],
+                    "bibo:content" => [[
+                        "type"=> "literal",
+                        "property_id"=> 91,
+                        "@value"=> $text
+                    ]],
                 ];
                 $response = $apiManager->update('items', $itemId, $data, [], ['isPartial' => true, 'collectionAction' => 'append']);    
-                         
               }
+            }
           }
       );
 
@@ -155,11 +153,12 @@ class Module extends AbstractModule
     public function pdfToText($path)
     {
         $path = escapeshellarg($path);
-        // TODO : Ne fonctionne pas sans le chemin complet
-        $text = shell_exec("/usr/local/bin/pdftotext -enc UTF-8 $path -  2>&1");
+        $serviceLocator = $this->getServiceLocator();
+        $settings = $serviceLocator->get('Omeka\Settings');
+        $pdftotext_path = $settings->get('pdftotext_path');
+        $command = $pdftotext_path . "pdftotext -enc UTF-8 $path -  2>&1";
+        $text = shell_exec($pdftotext_path . "pdftotext -enc UTF-8 $path -  2>&1");
         return $text;
-    }
-      
-
-
+    }    
+    
 }
