@@ -30,83 +30,11 @@ class Module extends AbstractModule
         // See: http://stackoverflow.com/questions/592620/check-if-a-program-exists-from-a-bash-script
         if ((int) shell_exec('hash pdftotext 2>&- || echo 1')) {
           $logger->info("pdftotext not found");
+            throw new ModuleCannotInstallException(__('The pdftotext command-line utility '
+                . 'is not installed. pdftotext must be installed to install this plugin.'));
         }
-/*
-            throw new Omeka_Plugin_Installer_Exception(__('The pdftotext command-line utility ' 
-            . 'is not installed. pdftotext must be installed to install this plugin.'));
-*/
     }
 
-    public function uninstall(ServiceLocatorInterface $serviceLocator)
-    {
-        // drop database schema
-    }
-      
-    /** Module body **/
-
-    /**
-     * Get this module's configuration form.
-     *
-     * @param ViewModel $view
-     * @return string
-     */
-    public function getConfigForm(\Zend\View\Renderer\PhpRenderer $renderer)
-    {
-        $serviceLocator = $this->getServiceLocator();
-        $settings = $serviceLocator->get('Omeka\Settings');
-
-        $textarea = new Textarea('pdftotext_css');
-        $textarea->setAttribute('rows', 15);
-        $textarea->setLabel('Options Pdf Text');
-        $textarea->setValue($settings->get('pdftotext_css'));
-        $textarea->setAttribute('id', 'pdftotext_css');
-
-        $formtext = new Text('pdftotext_path');
-        $formtext->setLabel('Options Pdf Text');
-        $formtext->setValue($settings->get('pdftotext_path'));
-        $formtext->setAttribute('id', 'pdftotext_path');
-        return $renderer->render('pdftext/config-form', ['textarea' => $textarea, 'formtext' => $formtext]);
-    }
-
-    public function handleConfigForm(AbstractController $controller)
-    {
-        $pdftotext_css = $controller->getRequest()->getPost('pdftotext_css', '');
-        $pdftotext_path = $controller->getRequest()->getPost('pdftotext_path', '');
-
-        $site_selected = $controller->getRequest()->getPost('site', '');
-        if ($site_selected) {
-            $this->setSiteOption($site_selected, 'pdftotext_css', $pdftotext_css);
-        } else {
-            $this->setOption('pdftotext_css', $pdftotext_css);
-        }
-        $this->setOption('pdftotext_path', $pdftotext_path);
-
-        return true;
-    }
-
-    public function setOption($name, $value) {
-        $serviceLocator = $this->getServiceLocator();
-        return $serviceLocator->get('Omeka\Settings')->set($name,$value);
-    }
-
-    public function getOption($name) {
-        $serviceLocator = $this->getServiceLocator();
-        return $serviceLocator->get('Omeka\Settings')->get($name);
-    }
-    
-    protected function setSiteOption($site_id, $name, $value) {
-        $serviceLocator = $this->getServiceLocator();
-        $siteSettings = $serviceLocator->get('Omeka\Settings\Site');
-        $entityManager = $serviceLocator->get('Omeka\EntityManager');
-
-        if ($site = $entityManager->find('Omeka\Entity\Site', $site_id)) {
-            $siteSettings->setTargetId($site_id);
-            return $siteSettings->set($name, $value);
-        }
-
-        return false;
-    }
-    
     public function getConfig()
     {
         return include __DIR__ . '/config/module.config.php';
@@ -157,7 +85,7 @@ class Module extends AbstractModule
         $settings = $serviceLocator->get('Omeka\Settings');
         $pdftotext_path = $settings->get('pdftotext_path');
         $command = $pdftotext_path . "pdftotext -enc UTF-8 $path -  2>&1";
-        $text = shell_exec($pdftotext_path . "pdftotext -enc UTF-8 $path -  2>&1");
+        $text = shell_exec($command);
         return $text;
     }    
     
