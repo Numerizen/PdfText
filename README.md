@@ -1,4 +1,4 @@
-# PdfText (module for Omeka S)
+PdfText (module for Omeka S)
 =============================
 
 Summary
