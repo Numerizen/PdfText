@@ -18,7 +18,7 @@ Installation
 
 ```
     cd omeka-s/modules  
-    git clone git@github.com:bubdxm/Omeka-S-module-PdfText.git "PdfText"
+    git clone https://github.com/bubdxm/Omeka-S-module-PdfText.git "PdfText"
 ```
 
 - Install it from the admin → Modules → PdfText -> install
