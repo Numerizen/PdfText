@@ -57,7 +57,8 @@ class Module extends AbstractModule
               $fileExt = $entity->getExtension();
               if (in_array($fileExt, array('pdf', 'PDF'))) {           
                 // Path du fichier
-                $filePath = OMEKA_PATH . '/files/original/' . $entity->getStorageId() . '.' . $fileExt;
+                $basePath = $this->getServiceLocator()->get('Config')['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
+                $filePath = $basePath . '/original/' . $entity->getStorageId() . '.' . $fileExt;
                 $item = $entity->getItem(); 
                 $itemId = $item->getId();
                 $text = $this->pdfToText($filePath); 
