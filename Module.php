@@ -1,7 +1,7 @@
 <?php 
   
 namespace PdfText;
-  
+
 use Omeka\Module\AbstractModule;
 use Omeka\Module\Manager as ModuleManager;
 use Omeka\Module\Exception\ModuleCannotInstallException;
@@ -29,7 +29,7 @@ class Module extends AbstractModule
         // Don't install if the pdftotext command doesn't exist.
         // See: http://stackoverflow.com/questions/592620/check-if-a-program-exists-from-a-bash-script
         if ((int) shell_exec('hash pdftotext 2>&- || echo 1')) {
-          $logger->info("pdftotext not found");
+            $logger->info("pdftotext not found");
             throw new ModuleCannotInstallException(__('The pdftotext command-line utility '
                 . 'is not installed. pdftotext must be installed to install this plugin.'));
         }
@@ -48,35 +48,34 @@ class Module extends AbstractModule
 
     public function attachListeners(SharedEventManagerInterface $sharedEventManager)
     {
-     $sharedEventManager->attach(
+        $sharedEventManager->attach(
           'Omeka\Api\Adapter\MediaAdapter',
-         'api.hydrate.post',          
+         'api.hydrate.post',
           function (\Zend\EventManager\Event $event) {
-            $entity = $event->getParam('entity');
-            if (! $entity->getId()) {
-              $fileExt = $entity->getExtension();
-              if (in_array($fileExt, array('pdf', 'PDF'))) {           
-                // Path du fichier
-                $basePath = $this->getServiceLocator()->get('Config')['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
-                $filePath = $basePath . '/original/' . $entity->getStorageId() . '.' . $fileExt;
-                $item = $entity->getItem(); 
-                $itemId = $item->getId();
-                $text = $this->pdfToText($filePath); 
-                $apiManager = $this->getServiceLocator()->get('Omeka\ApiManager');
-                // Update item's bibo:content property                
-                $data = [
+              $entity = $event->getParam('entity');
+              if (! $entity->getId()) {
+                  $fileExt = $entity->getExtension();
+                  if (in_array($fileExt, array('pdf', 'PDF'))) {
+                      // Path du fichier
+                      $basePath = $this->getServiceLocator()->get('Config')['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
+                      $filePath = $basePath . '/original/' . $entity->getStorageId() . '.' . $fileExt;
+                      $item = $entity->getItem();
+                      $itemId = $item->getId();
+                      $text = $this->pdfToText($filePath);
+                      $apiManager = $this->getServiceLocator()->get('Omeka\ApiManager');
+                      // Update item's bibo:content property
+                      $data = [
                     "bibo:content" => [[
                         "type"=> "literal",
                         "property_id"=> 91,
                         "@value"=> $text
                     ]],
                 ];
-                $response = $apiManager->update('items', $itemId, $data, [], ['isPartial' => true, 'collectionAction' => 'append']);    
+                      $response = $apiManager->update('items', $itemId, $data, [], ['isPartial' => true, 'collectionAction' => 'append']);
+                  }
               }
-            }
           }
       );
-
     }
 
     public function pdfToText($path)
@@ -88,6 +87,5 @@ class Module extends AbstractModule
         $command = $pdftotext_path . "pdftotext -enc UTF-8 $path -  2>&1";
         $text = shell_exec($command);
         return $text;
-    }    
-    
+    }
 }
