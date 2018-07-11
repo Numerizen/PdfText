@@ -1,27 +1,32 @@
-<div>
+<?php
+  
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+?><div>
   <div class="inputs">
-    <p>
-      <?php echo $this->translate('Add custom CSS for sites.'); ?><br/>
-      <?php echo $this->translate("Note: CSS rules defined for 'Default' will only be used if no CSS is defined for a specific site in this module."); ?><br/>
-      <?php echo $this->translate('Warning: the following tags cannot be used in selectors:'); ?>
-      <b>body, head, html</b>.<br/>
-      <?php echo sprintf($this->translate('For instance, if you define a rule like %s, it will be removed when submitting your changes.'), '<code>body {color: red;}</code>'); ?>
-    </p>
     <div id="csseditor_site">
       <?php
-        echo $this->siteSelect('site', [
+/*
+        echo $this->siteSelect(array('site'), [
             'empty_option' => $this->translate('Default'),
         ]);
+*/
       ?>
     </div>
     <div>
-      <?php echo $this->formTextarea($textarea); ?>
+      <?php // echo $this->formTextarea($textarea); ?>
     </div>
-
+    <div>
+      <?php echo $this->translate('Please type the pdf2text path with trailing slash.'); ?>
+      <?php echo $this->formText($formtext); ?>      
+    </div>
+    
   </div>
+    
 <br/><br/>
-<a class="button" id="save">Save</a>
-<a class="button" id="restore">Restore</a>
+<!--<a class="button" id="save">Save</a>-->
+<!--<a class="button" id="restore">Restore</a>-->
 
 </span>
 

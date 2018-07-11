@@ -52,20 +52,31 @@ class Module extends AbstractModule
      */
     public function getConfigForm(\Zend\View\Renderer\PhpRenderer $renderer)
     {
+/*
         $serviceLocator = $this->getServiceLocator();
         $settings = $serviceLocator->get('Omeka\Settings');
+*/
 
+        $services = $this->getServiceLocator();
+        $config = $services->get('Config');
+        $settings = $services->get('Omeka\Settings');
+        $formElementManager = $services->get('FormElementManager');
+        $form = $formElementManager->get(ConfigForm::class);
+        $form->init();
+      
+/*
         $textarea = new Textarea('pdftotext_css');
         $textarea->setAttribute('rows', 15);
         $textarea->setLabel('Options Pdf Text');
         $textarea->setValue($settings->get('pdftotext_css'));
         $textarea->setAttribute('id', 'pdftotext_css');
+*/
 
         $formtext = new Text('pdftotext_path');
         $formtext->setLabel('Options Pdf Text');
         $formtext->setValue($settings->get('pdftotext_path'));
         $formtext->setAttribute('id', 'pdftotext_path');
-        return $renderer->render('pdftext/config-form', ['textarea' => $textarea, 'formtext' => $formtext]);
+        return $renderer->render('pdftext/config-form', ['formtext' => $formtext]);
     }
 
     public function handleConfigForm(AbstractController $controller)
@@ -81,7 +92,7 @@ class Module extends AbstractModule
         }
         $this->setOption('pdftotext_path', $pdftotext_path);
 
-        return true;
+//         return true;
     }
 
     public function setOption($name, $value) {
