@@ -51,7 +51,7 @@ class Module extends AbstractModule
         }
 
         $fileExt = $entity->getExtension();
-        if (!in_array($fileExt, ['pdf', 'PDF'])) {
+        if (strtolower($fileExt) !== 'pdf') {
             return;
         }
 
