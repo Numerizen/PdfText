@@ -1,13 +1,20 @@
 PdfText (module for Omeka S)
-=============================
-
-Summary
------------
+============================
 
 Omeka's module that add text contents metadata to an item from a pdf media.
 
+PdfText helps indexing PDF files for Omeka search. The text the PDF files you
+upload to your site will be made available for Omeka search, whatever your
+search engine is.
+
+It does so by extracting text parts from the uploaded files, thanks to
+pdftotext.
+
+The extracted text is then added to the bibo:content field.
+
 Installation
 ------------
+
 - This plugin needs pdftotext command-line tool on your server
 
 ```
