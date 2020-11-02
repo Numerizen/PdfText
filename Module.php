@@ -4,7 +4,7 @@ namespace PdfText;
 
 use Omeka\Module\AbstractModule;
 use Omeka\Module\Exception\ModuleCannotInstallException;
-use \Zend\EventManager\Event;
+use Zend\EventManager\Event;
 use Zend\EventManager\SharedEventManagerInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
@@ -17,6 +17,7 @@ class Module extends AbstractModule
 
     public function install(ServiceLocatorInterface $serviceLocator)
     {
+        // TODO Use Omeka cli.
         // Don't install if the pdftotext command doesn't exist.
         // See: http://stackoverflow.com/questions/592620/check-if-a-program-exists-from-a-bash-script
         if ((int) shell_exec('hash pdftotext 2>&- || echo 1')) {
