@@ -1,12 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace PdfText;
 
-use Omeka\Module\AbstractModule;
-use Omeka\Module\Exception\ModuleCannotInstallException;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
+use Omeka\Module\AbstractModule;
+use Omeka\Module\Exception\ModuleCannotInstallException;
 
 class Module extends AbstractModule
 {
@@ -15,7 +15,7 @@ class Module extends AbstractModule
         return include __DIR__ . '/config/module.config.php';
     }
 
-    public function install(ServiceLocatorInterface $serviceLocator)
+    public function install(ServiceLocatorInterface $serviceLocator): void
     {
         // TODO Use Omeka cli.
         // Don't install if the pdftotext command doesn't exist.
@@ -33,7 +33,7 @@ class Module extends AbstractModule
      *
      * @param SharedEventManagerInterface $sharedEventManager
      */
-    public function attachListeners(SharedEventManagerInterface $sharedEventManager)
+    public function attachListeners(SharedEventManagerInterface $sharedEventManager): void
     {
         $sharedEventManager->attach(
             \Omeka\Api\Adapter\MediaAdapter::class,
@@ -42,7 +42,7 @@ class Module extends AbstractModule
         );
     }
 
-    public function handleApiHydratePostMedia(Event $event)
+    public function handleApiHydratePostMedia(Event $event): void
     {
         $entity = $event->getParam('entity');
 
