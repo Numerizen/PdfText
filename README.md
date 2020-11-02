@@ -12,23 +12,25 @@ pdftotext.
 
 The extracted text is then added to the bibo:content field.
 
+
 Installation
 ------------
 
 - This plugin needs pdftotext command-line tool on your server
 
-```
-    sudo apt-get install poppler-utils
+```sh
+sudo apt-get install poppler-utils
 ```
 
 - you can install the module via github
 
-```
-    cd omeka-s/modules  
-    git clone https://github.com/bubdxm/Omeka-S-module-PdfText.git "PdfText"
+```sh
+cd omeka-s/modules
+git clone https://github.com/bubdxm/Omeka-S-module-PdfText.git PdfText
 ```
 
 - Install it from the admin → Modules → PdfText -> install
+
 
 Using the PdfText module
 ---------------------------
@@ -36,7 +38,8 @@ Using the PdfText module
 - Create an item
 - Add PDF file(s) to this item
 - Save Item
-- If you go to the item's view you should see bibo:content filled. 
+- If you go to the item's view you should see bibo:content filled.
+
 
 Troubleshooting
 ---------------
@@ -68,7 +71,3 @@ Contact
 -------
 
 * Syvain Machefert, Université Bordeaux 3 (see [symac](https://github.com/symac))
-
-
-
-
