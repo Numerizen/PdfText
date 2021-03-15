@@ -51,7 +51,7 @@ class Module extends AbstractModule
             return;
         }
 
-        $fileExt = $entity->getExtension();
+        $fileExt = (string) $entity->getExtension();
         if (strtolower($fileExt) !== 'pdf') {
             return;
         }
